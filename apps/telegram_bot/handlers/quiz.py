@@ -161,10 +161,23 @@ async def handle_quiz_answer(message: Message) -> None:
     # Вопросы закончились — считаем риск-профиль через Orchestrator API
     _set_state(user_id, QuizFSM.IDLE)
 
-    async with httpx.AsyncClient(base_url=ORCH_URL, timeout=10.0) as client:
-        resp = await client.post("/quiz/score", json={"answers": session.answers})
+    payload = {
+        "telegram_id": message.from_user.id,
+        "username": message.from_user.username,
+        "first_name": message.from_user.first_name,
+        "last_name": message.from_user.last_name,
+        "answers": session.answers,
+    }
+
+    async with httpx.AsyncClient(base_url=ORCH_URL) as client:
+        resp = await client.post(
+            "/quiz/score",
+            json=payload,
+            timeout=10,
+        )
         resp.raise_for_status()
-        data = resp.json()
+
+    data = resp.json()
 
     risk_class = data.get("risk_class", "Unknown")
     confidence = data.get("confidence", 0.0)
