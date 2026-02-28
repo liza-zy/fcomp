@@ -4,3 +4,5 @@ __pycache__/
 .DS_Store
 .pytest_cache/
 uv.lock
+data_lake/
+*.duckdb
