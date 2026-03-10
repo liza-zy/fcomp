@@ -24,8 +24,18 @@ services:
     depends_on:
       - db
     restart: unless-stopped
+
+    volumes:
+      - ./data_lake:/app/data_lake
+    expose:
+      - "8000"
+
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/health || exit 1"]
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"
       interval: 10s
       timeout: 5s
       retries: 5
@@ -43,6 +53,40 @@ services:
       - api
       - db
     restart: unless-stopped
+    volumes:
+      - ./data_lake:/app/data_lake
+
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    environment:
+      # фронту удобно ходить в API через тот же домен:
+      # fetch("/api/portfolio/build")
+      - NEXT_PUBLIC_API_BASE=/api
+    expose:
+      - "3000"
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:

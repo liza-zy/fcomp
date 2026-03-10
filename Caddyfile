@@ -1,0 +1,21 @@
+fcomp.duckdns.org {
+
+  # API (всё что начинается с /api/)
+  handle_path /api/* {
+    reverse_proxy api:8000
+  }
+
+  # health и openapi наружу (удобно для проверок)
+  handle /health {
+    reverse_proxy api:8000
+  }
+
+  handle /openapi.json {
+    reverse_proxy api:8000
+  }
+
+  # всё остальное — фронт
+  handle {
+    reverse_proxy web:3000
+  }
+}

@@ -2,6 +2,7 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
@@ -17,6 +18,7 @@ SessionLocal = sessionmaker(
     autoflush=False,
     bind=engine,
 )
+
 
 def get_session():
     db = SessionLocal()

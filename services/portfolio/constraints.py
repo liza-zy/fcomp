@@ -14,7 +14,10 @@ def apply_constraints_universe(universe: pd.DataFrame, c: PortfolioConstraints) 
 
     if c.sectors_include:
         # ожидаем колонку sector_name (или sector_code)
-        df = df[df["sector_name"].isin(c.sectors_include)]
+        if "sector_id" not in universe.columns:
+            # временно игнорируем
+            pass
+        else: df = df[df["sector_name"].isin(c.sectors_include)]
 
     return df.reset_index(drop=True)
 

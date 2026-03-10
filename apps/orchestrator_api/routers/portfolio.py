@@ -1,21 +1,25 @@
 from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from pathlib import Path
+
+from src.models import User
 
 from services.portfolio.engine import PortfolioEngine
 from services.portfolio.schemas import BuildPortfolioRequest, BuildPortfolioResponse
 from services.portfolio.data_pg import get_user_risk_class, save_portfolio_run
-from apps.orchestrator_api.db import get_db
+from src.db import get_session
 
 router = APIRouter(prefix="/portfolio", tags=["portfolio"])
 
+APP_ROOT = Path(__file__).resolve().parents[3]  # .../app
 engine = PortfolioEngine(
-    duckdb_path="data_lake/moex.duckdb",
-    risk_yaml_path="services/risk_quiz/domain/questions.yaml",
+    duckdb_path=str(APP_ROOT / "data_lake" / "moex.duckdb"),
+    risk_yaml_path=str(APP_ROOT / "services" / "risk_quiz" / "domain" / "questions.yaml"),
 )
 
 @router.post("/build", response_model=BuildPortfolioResponse)
-def build_portfolio(req: BuildPortfolioRequest, db: Session = Depends(get_db)):
+def build_portfolio(req: BuildPortfolioRequest, db: Session = Depends(get_session)):
     # 1) risk profile
     risk_profile = req.risk_profile
     if not risk_profile:
@@ -23,6 +27,10 @@ def build_portfolio(req: BuildPortfolioRequest, db: Session = Depends(get_db)):
     if not risk_profile:
         raise HTTPException(status_code=400, detail="No risk profile: pass risk_profile or complete quiz")
 
+    user = db.query(User).filter(User.telegram_id == req.telegram_id).one_or_none()
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found: run /quiz/score first")
+    user_id = user.id
     # 2) as_of
     as_of = engine.market.get_as_of_common()
 
@@ -35,6 +43,7 @@ def build_portfolio(req: BuildPortfolioRequest, db: Session = Depends(get_db)):
     for p in resp.portfolios:
         save_portfolio_run(
             db=db,
+            user_id=user_id,
             telegram_id=req.telegram_id,
             as_of=p.as_of,
             risk_profile=p.risk_profile,

@@ -9,6 +9,7 @@ from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from dotenv import load_dotenv
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
 from apps.telegram_bot.handlers.start import build_main_menu_keyboard
 
@@ -26,6 +27,7 @@ class PortfolioState(str, Enum):
 
 _user_states: Dict[int, PortfolioState] = {}
 
+WEBAPP_URL = "https://fcomp.duckdns.org/"
 
 def _set_state(user_id: int, state: PortfolioState) -> None:
     _user_states[user_id] = state
@@ -42,14 +44,18 @@ def build_portfolio_keyboard():
 
 
 @router.message(F.text == "Собрать портфель")
-async def start_portfolio_flow(message: Message) -> None:
-    """Запрос базового параметра — условной суммы инвестиций."""
-    _set_state(message.from_user.id, PortfolioState.WAITING_AMOUNT)
-    await message.answer(
-        "Введите сумму, которую хотите инвестировать (в рублях):",
-        reply_markup=build_portfolio_keyboard(),
-    )
+async def open_portfolio_webapp(message: Message):
+    kb = InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(
+            text="Открыть мини-приложение",
+            web_app=WebAppInfo(url=WEBAPP_URL),
+        )
+    ]])
 
+    await message.answer(
+        "Откройте мини-приложение для настройки портфеля:",
+        reply_markup=kb
+    )
 
 @router.message(F.text == "Назад в меню")
 async def back_to_menu(message: Message) -> None:
