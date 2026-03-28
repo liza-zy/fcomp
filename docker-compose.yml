@@ -59,18 +59,22 @@ services:
 
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/web/Dockerfile
+    working_dir: /app/apps/web
+    command: npm run dev -- -H 0.0.0.0 -p 3000
     environment:
-      # фронту удобно ходить в API через тот же домен:
-      # fetch("/api/portfolio/build")
-      - NEXT_PUBLIC_API_BASE=/api
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: ""
     expose:
       - "3000"
     depends_on:
       - api
     ports:
       - "3000:3000"
+    volumes:
+      - ./apps/web:/app/apps/web
+      - /app/apps/web/node_modules
 
   caddy:
     image: caddy:2
@@ -84,7 +88,6 @@ services:
     depends_on:
       - web
       - api
-
 
 volumes:
   postgres_data:

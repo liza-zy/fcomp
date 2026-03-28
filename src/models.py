@@ -35,16 +35,30 @@ class User(Base):
     first_name: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     last_name: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
 
+    plan: Mapped[str] = mapped_column(String(20), nullable=False, default="free")
+    plan_expires_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    portfolio_limit: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1
+    )
+    portfolio_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
 
     quiz_results: Mapped[list["QuizResult"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
 
     portfolios: Mapped[list["Portfolio"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
 
 

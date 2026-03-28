@@ -20,7 +20,6 @@ engine = PortfolioEngine(
 
 @router.post("/build", response_model=BuildPortfolioResponse)
 def build_portfolio(req: BuildPortfolioRequest, db: Session = Depends(get_session)):
-    # 1) risk profile
     risk_profile = req.risk_profile
     if not risk_profile:
         risk_profile = get_user_risk_class(db, req.telegram_id)
@@ -29,30 +28,51 @@ def build_portfolio(req: BuildPortfolioRequest, db: Session = Depends(get_sessio
 
     user = db.query(User).filter(User.telegram_id == req.telegram_id).one_or_none()
     if not user:
-        raise HTTPException(status_code=400, detail="User not found: run /quiz/score first")
+        raise HTTPException(status_code=404, detail="User not found")
+
+#    if user.portfolio_count >= user.portfolio_limit:
+#        raise HTTPException(status_code=400, detail="Portfolio limit reached")
+
     user_id = user.id
-    # 2) as_of
     as_of = engine.market.get_as_of_common()
 
-    # 3) build
     resp = engine.build(req=req, risk_profile_key=risk_profile, as_of=as_of)
     if not resp.portfolios:
         raise HTTPException(status_code=400, detail="Portfolio build failed: not enough data after filtering")
 
-    # 4) save each portfolio
+    universe = engine.market.load_universe_for_risk_profile(as_of, engine.risk_profiles[risk_profile].index)
+    secid_to_uid = dict(zip(universe["secid"], universe["instrument_uid"]))
+
     for p in resp.portfolios:
-        save_portfolio_run(
-            db=db,
-            user_id=user_id,
-            telegram_id=req.telegram_id,
-            as_of=p.as_of,
-            risk_profile=p.risk_profile,
-            method=p.method,
-            cov_method=req.cov_method,
-            lookback=req.lookback,
-            constraints=req.constraints.model_dump(),
-            weights=p.weights,
-            metrics=p.metrics,
-        )
+        weight_rows = []
+        for secid, weight in p.weights.items():
+            instrument_uid = secid_to_uid.get(secid)
+            if not instrument_uid:
+                continue
+            weight_rows.append(
+                {
+                    "instrument_uid": instrument_uid,
+                    "secid": secid,
+                    "boardid": None,
+                    "weight": weight,
+                }
+            )
+
+#        save_portfolio_run(
+#           db=db,
+#            user_id=user_id,
+#            telegram_id=req.telegram_id,
+#            as_of=p.as_of,
+#            risk_profile=p.risk_profile,
+#            method=p.method,
+#            cov_method=req.cov_method,
+#            lookback=req.lookback,
+#            constraints=req.constraints.model_dump(),
+#            weights=weight_rows,
+#            metrics=p.metrics,
+#        )
+#
+#    user.portfolio_count += 1
+    db.commit()
 
     return resp

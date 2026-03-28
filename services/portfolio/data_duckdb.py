@@ -34,6 +34,33 @@ class DuckDBMarketData:
                 """, [as_of]).df()
             return df
 
+    def load_universe_for_risk_profile(self, as_of: date, max_risk_score: int) -> pd.DataFrame:
+        with self.connect() as con:
+            df = con.execute("""
+                select
+                    u.instrument_uid,
+                    u.asset_class,
+                    u.secid,
+                    u.boardid,
+                    u.n_obs,
+                    u.first_dt,
+                    u.last_dt,
+                    ri.currencyid,
+                    ri.group_name,
+                    arp.risk_profile,
+                    arp.risk_score,
+                    arp.ann_vol_pct
+                from universe_core u
+                join ref_instruments ri
+                  on ri.instrument_uid = u.instrument_uid
+                join asset_risk_profile arp
+                  on arp.instrument_uid = u.instrument_uid
+                where u.last_dt <= ?
+                  and arp.risk_score <= ?
+                order by u.asset_class, u.secid
+            """, [as_of, max_risk_score]).df()
+            return df
+
     def load_returns_wide(self, instrument_uids: list[str], as_of: date, lookback: int) -> pd.DataFrame:
         with self.connect() as con:
             # берём последние lookback дат на каждый инструмент из returns_1d_core

@@ -3,7 +3,7 @@ profiles:
     index: 0
     max_drawdown: 5
     volatility_min: 0
-    volatility_max: 4
+    volatility_max: 6
     equity_share_min: 0
     equity_share_max: 10
     expected_return_min: 2
@@ -18,9 +18,9 @@ profiles:
 
   Conservative:
     index: 1
-    max_drawdown: 10
-    volatility_min: 5
-    volatility_max: 8
+    max_drawdown: 12
+    volatility_min: 6
+    volatility_max: 18
     equity_share_min: 10
     equity_share_max: 30
     expected_return_min: 4
@@ -36,8 +36,8 @@ profiles:
   Balanced:
     index: 2
     max_drawdown: 20
-    volatility_min: 8
-    volatility_max: 12
+    volatility_min: 18
+    volatility_max: 28
     equity_share_min: 30
     equity_share_max: 55
     expected_return_min: 6
@@ -52,8 +52,8 @@ profiles:
   Growth:
     index: 3
     max_drawdown: 30
-    volatility_min: 12
-    volatility_max: 18
+    volatility_min: 28
+    volatility_max: 45
     equity_share_min: 60
     equity_share_max: 80
     expected_return_min: 9
@@ -68,9 +68,9 @@ profiles:
 
   Aggressive:
     index: 4
-    max_drawdown: 50
-    volatility_min: 18
-    volatility_max: 25
+    max_drawdown: 45
+    volatility_min: 45
+    volatility_max: 150
     equity_share_min: 80
     equity_share_max: 100
     expected_return_min: 12

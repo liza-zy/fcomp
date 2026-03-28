@@ -39,6 +39,10 @@ def fetch_instruments_for_asset_class(client: MoexISSClient, asset_class: str) -
                 secid = d.get("SECID")
                 boardid = d.get("BOARDID")  # бывает, бывает null
                 # если для класса задан фильтр boardids — пропускаем всё лишнее
+                if asset_class == "equity":
+                    if d.get("TYPE") != "common_share":
+                        continue
+
                 if boardids and boardid not in boardids:
                     continue
 
@@ -69,6 +73,7 @@ def fetch_instruments_for_asset_class(client: MoexISSClient, asset_class: str) -
                         "type": d.get("TYPE"),
                         "group_name": d.get("GROUP"),
                         "is_traded": (d.get("IS_TRADED") == 1) if d.get("IS_TRADED") is not None else None,
+                        "investor_access": None,
                         "meta_json": json.dumps(meta, ensure_ascii=False),
                     }
                 )
@@ -92,6 +97,7 @@ def fetch_instruments_for_asset_class(client: MoexISSClient, asset_class: str) -
                 "type",
                 "group_name",
                 "is_traded",
+                "investor_access",
                 "meta_json",
             ]
         )

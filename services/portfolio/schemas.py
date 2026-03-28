@@ -10,6 +10,7 @@ class PortfolioConstraints(BaseModel):
     currencies_include: list[str] = Field(default_factory=list) # например ["RUB", "CNY"]
     exclude_secids: list[str] = Field(default_factory=list)     # ["GAZP", "SBER"]
     max_weight: float = 0.15
+    max_assets: int = 10
     budget_rub: float = 100_000
 
 class BuildPortfolioRequest(BaseModel):

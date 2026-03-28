@@ -1,7 +1,7 @@
 ASSET_CLASS_QUERIES = {
     # Акции: stock/shares (потом можно сузить до TQBR)
     "equity": [
-        {"engine": "stock", "market": "shares"},
+        {"engine": "stock", "market": "shares","boardids": ["TQBR"]},
     ],
 
     # Фонды/ETF: тоже stock/shares, но фильтруем по ETF board'ам

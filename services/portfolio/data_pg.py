@@ -32,7 +32,7 @@ def save_portfolio_run(
     cov_method: str,
     lookback: int,
     constraints: dict,
-    weights: dict[str, float],
+    weights: list[dict[str, Any]],
     metrics: dict[str, Any],
 ) -> int:
     p = Portfolio(
@@ -49,8 +49,15 @@ def save_portfolio_run(
         },
     )
 
-    for instrument_uid, w in weights.items():
-        p.weights.append(PortfolioWeight(instrument_uid=instrument_uid,secid=instrument_uid, boardid=None, weight=float(w)))
+    for row in weights:
+        p.weights.append(
+            PortfolioWeight(
+                instrument_uid=row["instrument_uid"],
+                secid=row.get("secid"),
+                boardid=row.get("boardid"),
+                weight=float(row["weight"]),
+            )
+        )
 
     db.add(p)
     db.commit()

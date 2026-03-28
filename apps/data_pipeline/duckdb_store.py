@@ -44,6 +44,7 @@ def ensure_schema(con: duckdb.DuckDBPyConnection) -> None:
           type varchar,
           group_name varchar,
           is_traded boolean,
+          investor_access varchar,
           meta_json varchar,
           updated_at timestamptz
         );
@@ -74,7 +75,7 @@ def upsert_instruments(con: duckdb.DuckDBPyConnection, df: pd.DataFrame) -> None
     """
     Expect df columns:
       instrument_uid, asset_class, engine, market, boardid, secid, shortname, name,
-      isin, currencyid, lot, type, group_name, is_traded, meta_json
+      isin, currencyid, lot, type, group_name, is_traded, investor_access, meta_json
     """
     ensure_schema(con)
 
@@ -106,14 +107,15 @@ def upsert_instruments(con: duckdb.DuckDBPyConnection, df: pd.DataFrame) -> None
           type = s.type,
           group_name = s.group_name,
           is_traded = s.is_traded,
+          investor_access = s.investor_access,
           meta_json = s.meta_json,
           updated_at = s.updated_at
         when not matched then insert (
           instrument_uid, asset_class, engine, market, boardid, secid, shortname, name,
-          isin, currencyid, lot, type, group_name, is_traded, meta_json, updated_at
+          isin, currencyid, lot, type, group_name, is_traded, investor_access,  meta_json, updated_at
         ) values (
           s.instrument_uid, s.asset_class, s.engine, s.market, s.boardid, s.secid, s.shortname, s.name,
-          s.isin, s.currencyid, s.lot, s.type, s.group_name, s.is_traded, s.meta_json, s.updated_at
+          s.isin, s.currencyid, s.lot, s.type, s.group_name, s.is_traded, s.investor_access,  s.meta_json, s.updated_at
         );
         """
     )
