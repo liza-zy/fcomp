@@ -15,7 +15,7 @@ BOOTSTRAPPABLE_TARGET_TABLES = [
     "market_prices",
     "instruments",
 ]
-
+MIN_HISTORY_FOR_UNIVERSE = 126
 
 def _attach_source(con: duckdb.DuckDBPyConnection, source_db: Path) -> None:
     con.execute(f"ATTACH '{source_db.as_posix()}' AS src (READ_ONLY)")
@@ -43,7 +43,7 @@ def bootstrap_instruments(cfg: RLDatabaseConfig = RLDatabaseConfig()) -> None:
         _attach_source(con, cfg.source_db)
 
         con.execute(
-            """
+            f"""
             INSERT INTO instruments (
                 instrument_id,
                 instrument_uid,
@@ -108,7 +108,7 @@ def bootstrap_market_prices(cfg: RLDatabaseConfig = RLDatabaseConfig()) -> None:
         _attach_source(con, cfg.source_db)
 
         con.execute(
-            """
+            f"""
             INSERT INTO market_prices (
                 date,
                 instrument_id,
@@ -149,7 +149,7 @@ def bootstrap_instrument_features(cfg: RLDatabaseConfig = RLDatabaseConfig()) ->
         _attach_source(con, cfg.source_db)
 
         con.execute(
-            """
+            f"""
             INSERT INTO instrument_features (
                 decision_date,
                 instrument_id,
@@ -209,7 +209,7 @@ def bootstrap_instrument_features(cfg: RLDatabaseConfig = RLDatabaseConfig()) ->
                     ELSE NULL
                 END AS liquidity_score,
 
-                CASE WHEN obs_num >= 252 THEN TRUE ELSE FALSE END AS has_min_history,
+                CASE WHEN obs_num >= {MIN_HISTORY_FOR_UNIVERSE} THEN TRUE ELSE FALSE END AS has_min_history,
                 CASE WHEN f.close IS NOT NULL THEN TRUE ELSE FALSE END AS is_available,
 
                 NULL::VARCHAR AS risk_profile_asset,
@@ -219,7 +219,7 @@ def bootstrap_instrument_features(cfg: RLDatabaseConfig = RLDatabaseConfig()) ->
                 NULL::VARCHAR AS risk_profile_method,
 
                 CASE
-                    WHEN obs_num >= 252
+                    WHEN obs_num >= {MIN_HISTORY_FOR_UNIVERSE}
                      AND f.close IS NOT NULL
                      AND COALESCE(f.adv_value_20, 0) > 0
                     THEN TRUE
