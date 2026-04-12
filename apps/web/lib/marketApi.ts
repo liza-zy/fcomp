@@ -1,7 +1,11 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
+function buildUrl(path: string) {
+  return `${API_BASE_URL}${path}`;
+}
+
 export async function fetchMarket(q = '') {
-  const url = `${API_BASE_URL}/api/market?q=${encodeURIComponent(q)}`;
+  const url = buildUrl(`/market?q=${encodeURIComponent(q)}`);
   const response = await fetch(url, { cache: 'no-store' });
 
   if (!response.ok) {
@@ -12,7 +16,7 @@ export async function fetchMarket(q = '') {
 }
 
 export async function fetchMarketAsset(secid: string) {
-  const url = `${API_BASE_URL}/api/market/${encodeURIComponent(secid)}`;
+  const url = buildUrl(`/market/${encodeURIComponent(secid)}`);
   const response = await fetch(url, { cache: 'no-store' });
 
   if (!response.ok) {
@@ -24,7 +28,7 @@ export async function fetchMarketAsset(secid: string) {
 
 export async function fetchMarketChart(secid: string, period = '1M') {
   const response = await fetch(
-    `${API_BASE_URL}/api/market/${encodeURIComponent(secid)}/chart?period=${encodeURIComponent(period)}`,
+    buildUrl(`/market/${encodeURIComponent(secid)}/chart?period=${encodeURIComponent(period)}`),
     { cache: 'no-store' }
   );
 
@@ -38,7 +42,7 @@ export async function fetchMarketChart(secid: string, period = '1M') {
 
 export async function fetchMarketMetrics(secid: string) {
   const response = await fetch(
-    `${API_BASE_URL}/api/market/${encodeURIComponent(secid)}/metrics`,
+    buildUrl(`/market/${encodeURIComponent(secid)}/metrics`),
     { cache: 'no-store' }
   );
 

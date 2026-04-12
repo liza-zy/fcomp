@@ -34,7 +34,41 @@ class DuckDBMarketData:
                 """, [as_of]).df()
             return df
 
-    def load_universe_for_risk_profile(self, as_of: date, max_risk_score: int) -> pd.DataFrame:
+    def load_latest_prices_and_lots(
+        self,
+        instrument_uids: list[str],
+        as_of: date,
+    ) -> pd.DataFrame:
+        if not instrument_uids:
+            return pd.DataFrame(
+                columns=["instrument_uid", "secid", "boardid", "price", "lot"]
+            )
+
+        placeholders = ",".join(["?"] * len(instrument_uids))
+
+        with self.connect() as con:
+            df = con.execute(f"""
+                select
+                    ri.instrument_uid,
+                    ri.secid,
+                    ri.boardid,
+                    coalesce(ri.lot, 1) as lot,
+                    b.close as price
+                from ref_instruments ri
+                join bars_1d_clean b
+                  on b.instrument_uid = ri.instrument_uid
+                where ri.instrument_uid in ({placeholders})
+                  and b.dt = ?
+            """, [*instrument_uids, as_of]).df()
+
+        return df
+
+    def load_universe_for_risk_profile(
+        self,
+        as_of: date,
+        max_risk_score: int,
+        is_qualified_investor: bool = False,
+    ) -> pd.DataFrame:
         with self.connect() as con:
             df = con.execute("""
                 select
@@ -47,6 +81,8 @@ class DuckDBMarketData:
                     u.last_dt,
                     ri.currencyid,
                     ri.group_name,
+                    ri.investor_access,
+                    ri.lot,
                     arp.risk_profile,
                     arp.risk_score,
                     arp.ann_vol_pct
@@ -57,8 +93,12 @@ class DuckDBMarketData:
                   on arp.instrument_uid = u.instrument_uid
                 where u.last_dt <= ?
                   and arp.risk_score <= ?
+                  and (
+                    ? = true
+                    or ri.investor_access in ('non_qualified', 'unknown')
+                  )
                 order by u.asset_class, u.secid
-            """, [as_of, max_risk_score]).df()
+            """, [as_of, max_risk_score, is_qualified_investor]).df()
             return df
 
     def load_returns_wide(self, instrument_uids: list[str], as_of: date, lookback: int) -> pd.DataFrame:

@@ -65,7 +65,7 @@ services:
     command: npm run dev -- -H 0.0.0.0 -p 3000
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: ""
+      NEXT_PUBLIC_API_URL: "https://fcomp.duckdns.org/api"
     expose:
       - "3000"
     depends_on:

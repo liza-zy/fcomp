@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import BottomTabBar from '@/components/navigation/BottomTabBar';
 import { deletePortfolio, getTrackedPortfolios, renamePortfolio } from '@/lib/api';
-import PortfolioListItem from '@/components/portfolios/PortfolioListItem';
+import PortfolioListItem from './PortfolioListItem';
 import type {
   PortfoliosListResponse,
   TrackedPortfolio,
   UserPortfolioLimits,
-} from '@/components/portfolios/types';
+} from './types';
 
 export default function PortfoliosScreen() {
   const [portfolios, setPortfolios] = useState<TrackedPortfolio[]>([]);
@@ -100,9 +100,10 @@ export default function PortfoliosScreen() {
       <div className="mb-4 flex gap-3">
         <Link
           href="/risk-survey"
-          className="flex-1 rounded-2xl bg-[#2E5E4E] hover:bg-[#254C3F]  px-4 py-3 text-center text-sm font-medium text-white"
+          className="flex-1 rounded-2xl bg-[#5B8F7B] hover:bg-[#4E7D6C] px-4 py-4 text-center text-white shadow-sm"
         >
-          Собрать с нуля
+          <div className="text-base font-semibold">Собрать портфель</div>
+          <div className="text-xs opacity-80">На основе риск-профиля</div>
         </Link>
 
         <button
@@ -141,7 +142,7 @@ export default function PortfoliosScreen() {
         </div>
       )}
 
-      <BottomTabBar />
+      <BottomTabBar currentTab="portfolios" />
     </main>
   );
 }
